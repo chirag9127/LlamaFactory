@@ -72,6 +72,16 @@ class ModelEngine:
         NOTE: Transformers v5 always use fast tokenizer.
         https://github.com/huggingface/transformers/blob/v5.0.0rc1/src/transformers/models/auto/tokenization_auto.py#L642
         """
+        # Register GlmOcrConfig to use Glm4vProcessor since transformers does not include this mapping.
+        # See: https://github.com/hiyouga/LLaMA-Factory/issues/10193
+        try:
+            from transformers.models.glm_ocr.configuration_glm_ocr import GlmOcrConfig
+            from transformers.models.glm4v.processing_glm4v import Glm4vProcessor
+
+            AutoProcessor.register(GlmOcrConfig, Glm4vProcessor, exist_ok=True)
+        except ImportError:
+            pass
+
         return AutoProcessor.from_pretrained(
             self.args.model,
             trust_remote_code=self.args.trust_remote_code,
