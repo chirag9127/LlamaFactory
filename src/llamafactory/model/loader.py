@@ -95,6 +95,16 @@ def load_tokenizer(model_args: "ModelArguments") -> "TokenizerModule":
 
     patch_tokenizer(tokenizer, model_args)
 
+    # Register GlmOcrConfig to use Glm4vProcessor since transformers does not include this mapping.
+    # See: https://github.com/hiyouga/LLaMA-Factory/issues/10193
+    try:
+        from transformers.models.glm_ocr.configuration_glm_ocr import GlmOcrConfig
+        from transformers.models.glm4v.processing_glm4v import Glm4vProcessor
+
+        AutoProcessor.register(GlmOcrConfig, Glm4vProcessor, exist_ok=True)
+    except ImportError:
+        pass
+
     try:
         processor = AutoProcessor.from_pretrained(
             model_args.model_name_or_path,
